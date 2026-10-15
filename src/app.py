@@ -57,7 +57,6 @@ if st.button("🚀 Lancer l'épisode", type="primary"):
             )
             response.raise_for_status()
             result = response.json()
-
             st.session_state["simulation_result"] = result
         except requests.RequestException as exc:
             st.error(f"Erreur pendant la simulation : {exc}")
@@ -74,8 +73,27 @@ if result:
     col2.metric("Nombre d'étapes", result["episode_length"])
     col3.metric("Seed", result["seed"])
 
+    
     st.write("**Actions choisies par l'agent**")
-    st.bar_chart(result["action_counts"])
+
+    noms_actions = {
+        0: "Aucune action",
+        1: "Moteur gauche",
+        2: "Moteur principal",
+        3: "Moteur droit",
+    }
+
+    action_counts = result["action_counts"]
+    action_counts_fr = {
+        noms_actions.get(int(action), str(action)): nombre
+        for action, nombre in action_counts.items()
+    }
+
+    st.bar_chart(action_counts_fr)
+
+
+#    st.write("**Actions choisies par l'agent**")
+#    st.bar_chart(result["action_counts"])
 
 #st.divider()
 #st.subheader("Vidéo de démonstration")
@@ -92,6 +110,43 @@ if result:
 #        "Vidéo introuvable. Vérifie le fichier "
 #        "outputs/videos/lunarlander_E08_episode.mp4."
 #    )
+
+
+# Courbes d'évaluation du modèle E08
+import pandas as pd
+from pathlib import Path
+
+st.divider()
+st.subheader("📈 Évaluation du modèle DQN E08")
+
+eval_file = Path("outputs/metrics/dqn_lunarlander_E08_eval_100.csv")
+
+if eval_file.exists():
+    df_eval = pd.read_csv(eval_file)
+
+    # Récompenses obtenues sur les 100 épisodes d'évaluation
+    st.write("**Récompense par épisode d'évaluation**")
+    st.line_chart(
+        df_eval.set_index("seed")[["reward"]],
+        x_label="Seed",
+        y_label="Récompense totale",
+    )
+
+    # Nombre d'étapes par épisode
+    st.write("**Nombre d'étapes par épisode d'évaluation**")
+    st.line_chart(
+        df_eval.set_index("seed")[["episode_length"]],
+        x_label="Seed",
+        y_label="Nombre d'étapes",
+    )
+
+    st.caption(
+        "Résultats de l'évaluation du modèle E08 sur 100 épisodes."
+    )
+else:
+    st.warning("Le fichier d'évaluation E08 est introuvable.")
+
+
 
 st.divider()
 st.subheader("Vidéo de l'épisode simulé")

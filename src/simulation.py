@@ -43,7 +43,7 @@ def run_episode(
         if record_video:
             with imageio.get_writer(
                 video_path,
-                fps=30,
+                fps=25,
                 codec="libx264",
                 macro_block_size=1,
             ) as writer:
