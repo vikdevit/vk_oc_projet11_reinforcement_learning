@@ -113,6 +113,40 @@ if result:
 
 
 # Courbes d'évaluation du modèle E08
+#import pandas as pd
+#from pathlib import Path
+#
+#st.divider()
+#st.subheader("📈 Évaluation du modèle DQN E08")
+#
+#eval_file = Path("outputs/metrics/dqn_lunarlander_E08_eval_100.csv")
+#
+#if eval_file.exists():
+#    df_eval = pd.read_csv(eval_file)
+#
+#    # Récompenses obtenues sur les 100 épisodes d'évaluation
+#    st.write("**Récompense par épisode d'évaluation**")
+#    st.line_chart(
+#        df_eval.set_index("seed")[["reward"]],
+#        x_label="Seed",
+#        y_label="Récompense totale",
+#    )
+#
+#    # Nombre d'étapes par épisode
+#    st.write("**Nombre d'étapes par épisode d'évaluation**")
+#    st.line_chart(
+#        df_eval.set_index("seed")[["episode_length"]],
+#        x_label="Seed",
+#        y_label="Nombre d'étapes",
+#    )
+#
+#    st.caption(
+#        "Résultats de l'évaluation du modèle E08 sur 100 épisodes."
+#    )
+#else:
+#    st.warning("Le fichier d'évaluation E08 est introuvable.")
+
+# Courbes d'évaluation du modèle E08
 import pandas as pd
 from pathlib import Path
 
@@ -124,27 +158,50 @@ eval_file = Path("outputs/metrics/dqn_lunarlander_E08_eval_100.csv")
 if eval_file.exists():
     df_eval = pd.read_csv(eval_file)
 
-    # Récompenses obtenues sur les 100 épisodes d'évaluation
-    st.write("**Récompense par épisode d'évaluation**")
+    # Vérification et tri des données
+    df_eval = df_eval.sort_values("seed")
+
+    # Filtre interactif sur les graines
+    seed_min = int(df_eval["seed"].min())
+    seed_max = int(df_eval["seed"].max())
+
+    seed_range = st.slider(
+        "Filtrer la plage des graines",
+        min_value=seed_min,
+        max_value=seed_max,
+        value=(seed_min, seed_max),
+        step=1,
+    )
+
+    # Application du filtre aux deux métriques
+    df_filtered = df_eval[
+        df_eval["seed"].between(seed_range[0], seed_range[1])
+    ]
+
+    st.caption(
+        f"{len(df_filtered)} épisodes affichés "
+        f"sur {len(df_eval)} épisodes d'évaluation."
+    )
+
+    # Récompense par épisode
+    st.write("**Récompense totale par épisode d'évaluation**")
     st.line_chart(
-        df_eval.set_index("seed")[["reward"]],
-        x_label="Seed",
+        df_filtered.set_index("seed")[["reward"]],
+        x_label="Graine",
         y_label="Récompense totale",
     )
 
     # Nombre d'étapes par épisode
     st.write("**Nombre d'étapes par épisode d'évaluation**")
     st.line_chart(
-        df_eval.set_index("seed")[["episode_length"]],
-        x_label="Seed",
+        df_filtered.set_index("seed")[["episode_length"]],
+        x_label="Graine",
         y_label="Nombre d'étapes",
     )
 
-    st.caption(
-        "Résultats de l'évaluation du modèle E08 sur 100 épisodes."
-    )
 else:
     st.warning("Le fichier d'évaluation E08 est introuvable.")
+
 
 
 
